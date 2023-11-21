@@ -7,6 +7,7 @@ from structlog.stdlib import get_logger
 
 from authentik.core.exceptions import PropertyMappingExpressionException
 from authentik.core.models import User
+from authentik.events.models import EventBatch  # Importing the EventBatch model
 from authentik.events.models import (
     Event,
     Notification,
@@ -110,19 +111,36 @@ def notification_transport(
         event = Event.objects.filter(pk=event_pk).first()
         if not event:
             return
+
         user = User.objects.filter(pk=user_pk).first()
         if not user:
             return
         trigger = NotificationRule.objects.filter(pk=trigger_pk).first()
         if not trigger:
             return
-        notification = Notification(
-            severity=trigger.severity, body=event.summary, event=event, user=user
-        )
+
+        # Check if batching is enabled and process accordingly
         transport = NotificationTransport.objects.filter(pk=transport_pk).first()
-        if not transport:
-            return
-        transport.send(notification)
+        if transport and transport.enable_batching:
+            # Process the event for batching
+            batch = EventBatch.get_or_create_batch(event.action, event.app, event.user)
+            batch.add_event_to_batch(event)
+            # Check if the batch has reached its limits
+            if not batch.check_batch_limits():
+                return
+
+            batch_summary = batch.process_batch()
+            batch.delete()
+            notification = Notification(
+                severity=trigger.severity, body=batch_summary, event=event, user=user
+            )
+        else:
+            notification = Notification(
+                severity=trigger.severity, body=event.summary, event=event, user=user
+            )
+
+        transport.send_notification(notification)
+
         self.set_status(TaskResult(TaskResultStatus.SUCCESSFUL))
     except (NotificationTransportError, PropertyMappingExpressionException) as exc:
         self.set_status(TaskResult(TaskResultStatus.ERROR).with_error(exc))
