@@ -36,6 +36,10 @@ export const ROUTES: Route[] = [
         await import("@goauthentik/admin/applications/ApplicationViewPage");
         return html`<ak-application-view .applicationSlug=${args.slug}></ak-application-view>`;
     }),
+    new Route(new RegExp("^/providers/rac/endpoints$"), async () => {
+        await import("@goauthentik/admin/endpoints/EndpointListPage");
+        return html`<ak-rac-endpoint-list></ak-rac-endpoint-list>`;
+    }),
     new Route(new RegExp("^/core/sources$"), async () => {
         await import("@goauthentik/admin/sources/SourceListPage");
         return html`<ak-source-list></ak-source-list>`;

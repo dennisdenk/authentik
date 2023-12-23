@@ -16,7 +16,7 @@ from authentik.root.middleware import ChannelsLoggingMiddleware
 
 urlpatterns = [
     path(
-        "application/rac/<slug:app>/<uuid:endpoint>/",
+        "application/rac/<slug:app>/",
         ensure_csrf_cookie(RACInterface.as_view()),
         name="start",
     ),

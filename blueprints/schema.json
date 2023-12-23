@@ -8908,6 +8908,13 @@
                     ],
                     "title": "Protocol"
                 },
+                "endpoints": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "title": "Endpoints"
+                },
                 "settings": {
                     "type": "object",
                     "additionalProperties": true,

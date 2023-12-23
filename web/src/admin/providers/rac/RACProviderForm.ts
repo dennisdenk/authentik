@@ -12,18 +12,27 @@ import YAML from "yaml";
 
 import { msg } from "@lit/localize";
 import { TemplateResult, html } from "lit";
-import { customElement } from "lit/decorators.js";
+import { customElement, state } from "lit/decorators.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 
 import {
     FlowsInstancesListDesignationEnum,
+    PaginatedEndpointList,
     ProtocolEnum,
     ProvidersApi,
     RACProvider,
+    RacApi,
 } from "@goauthentik/api";
 
 @customElement("ak-provider-rac-form")
 export class RACProviderFormPage extends ModelForm<RACProvider, number> {
+    @state()
+    endpoints?: PaginatedEndpointList;
+
+    async load(): Promise<void> {
+        this.endpoints = await new RacApi(DEFAULT_CONFIG).racEndpointsList({});
+    }
+
     async loadInstance(pk: number): Promise<RACProvider> {
         return new ProvidersApi(DEFAULT_CONFIG).providersRacRetrieve({
             id: pk,
@@ -79,13 +88,6 @@ export class RACProviderFormPage extends ModelForm<RACProvider, number> {
             <ak-form-group .expanded=${true}>
                 <span slot="header"> ${msg("Protocol settings")} </span>
                 <div slot="body" class="pf-c-form">
-                    <ak-text-input
-                        name="host"
-                        label=${msg("Host")}
-                        value="${first(this.instance?.host, "")}"
-                        required
-                    >
-                    </ak-text-input>
                     <ak-radio-input
                         name="protocol"
                         label=${msg("Client type")}
@@ -108,6 +110,35 @@ export class RACProviderFormPage extends ModelForm<RACProvider, number> {
                         ]}
                     >
                     </ak-radio-input>
+                    <ak-form-element-horizontal
+                        label=${msg("Endpoints")}
+                        ?required=${true}
+                        name="endpoints"
+                    >
+                        <select class="pf-c-form-control" multiple>
+                            ${this.endpoints?.results.map((endpoint) => {
+                                const selected = Array.from(this.instance?.endpoints || []).some(
+                                    (sp) => {
+                                        return sp == endpoint.pk;
+                                    },
+                                );
+                                return html`<option
+                                    value=${ifDefined(endpoint.pk)}
+                                    ?selected=${selected}
+                                >
+                                    ${endpoint.name}
+                                </option>`;
+                            })}
+                        </select>
+                        <p class="pf-c-form__helper-text">
+                            ${msg(
+                                "Select any endpoints that users should be able to connect to with this provider.",
+                            )}
+                        </p>
+                        <p class="pf-c-form__helper-text">
+                            ${msg("Hold control/command to select multiple items.")}
+                        </p>
+                    </ak-form-element-horizontal>
                     <ak-form-element-horizontal label=${msg("Settings")} name="settings">
                         <ak-codemirror
                             mode="yaml"

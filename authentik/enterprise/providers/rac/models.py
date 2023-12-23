@@ -135,7 +135,6 @@ class RACPropertyMapping(PropertyMapping):
 
 
 class ConnectionToken(ExpiringModel):
-
     connection_token_uuid = models.UUIDField(default=uuid4, primary_key=True)
     provider = models.ForeignKey(RACProvider, on_delete=models.CASCADE)
     endpoint = models.ForeignKey(Endpoint, on_delete=models.CASCADE)

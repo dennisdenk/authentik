@@ -118,7 +118,8 @@ export class AkAdminSidebar extends AKElement {
             [null, msg("Applications"), null, [
                 ["/core/applications", msg("Applications"), [`^/core/applications/(?<slug>${SLUG_REGEX})$`]],
                 ["/core/providers", msg("Providers"), [`^/core/providers/(?<id>${ID_REGEX})$`]],
-                ["/outpost/outposts", msg("Outposts")]]],
+                ["/outpost/outposts", msg("Outposts")],
+                ["/providers/rac/endpoints", msg("Endpoints")]]],
             [null, msg("Events"), null, [
                 ["/events/log", msg("Logs"), [`^/events/log/(?<id>${UUID_REGEX})$`]],
                 ["/events/rules", msg("Notification Rules")],
